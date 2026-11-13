@@ -1,10 +1,657 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Meine Website</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="description" content="InfernoSteve — gaming videos, mods, and fun. Minecraft, Roblox, GTA, FiveM, Fortnite, Rocket League, and more.">
+  <title>InfernoSteve | Gaming Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #050508;
+      --bg-elevated: #0d0d14;
+      --bg-card: #12121c;
+      --fg-primary: #e8e8f0;
+      --fg-muted: #777786;
+      --accent-cyan: #00f0ff;
+      --accent-cyan-dim: rgba(0, 240, 255, .14);
+      --accent-violet: #b87cff;
+      --accent-violet-dim: rgba(184, 124, 255, .12);
+      --accent-orange: #ff6b35;
+      --border-subtle: rgba(255, 255, 255, .07);
+      --border-glow: rgba(0, 240, 255, .34);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --ease: cubic-bezier(.22, 1, .36, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-width: 320px;
+      margin: 0;
+      overflow-x: hidden;
+      color: var(--fg-primary);
+      background: var(--bg-deep);
+      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      line-height: 1.55;
+    }
+
+    #particle-canvas,
+    .grid-overlay,
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    #particle-canvas { z-index: 0; width: 100%; height: 100%; }
+    .grid-overlay {
+      z-index: 1;
+      opacity: .32;
+      background-image:
+        linear-gradient(rgba(0, 240, 255, .018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, .018) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: none;
+    }
+    .vignette {
+      z-index: 2;
+      background: radial-gradient(ellipse 75% 55% at 50% 8%, rgba(0, 240, 255, .045), transparent 72%), radial-gradient(ellipse 60% 45% at 85% 80%, rgba(184, 124, 255, .035), transparent 68%);
+    }
+    @keyframes grid-drift { to { transform: translate(60px, 60px); } }
+
+    a { color: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { font: inherit; }
+    .skip-link {
+      position: fixed;
+      z-index: 50;
+      top: 12px;
+      left: 14px;
+      padding: 9px 13px;
+      border-radius: 8px;
+      color: var(--bg-deep);
+      background: var(--accent-cyan);
+      font-weight: 800;
+      text-decoration: none;
+      transform: translateY(-150%);
+      transition: transform .2s;
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    .page-wrapper {
+      position: relative;
+      z-index: 10;
+      width: min(960px, calc(100% - 42px));
+      margin: 0 auto;
+      padding: 4rem 0 5rem;
+    }
+
+    /* Hero — kept simple like the first version. */
+    .hero {
+      padding: 2rem 0 4.3rem;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(25px);
+      animation: hero-reveal .9s var(--ease) forwards;
+    }
+    @keyframes hero-reveal { to { opacity: 1; transform: none; } }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 1.35rem;
+      padding: 8px 14px;
+      border: 1px solid var(--border-glow);
+      border-radius: 100px;
+      color: var(--accent-cyan);
+      background: var(--accent-cyan-dim);
+      font-family: Orbitron, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      box-shadow: 0 0 24px rgba(0, 240, 255, .1);
+      animation: badge-pulse 3.5s ease-in-out infinite;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 12px var(--accent-cyan);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 50% { opacity: .35; } }
+    @keyframes badge-pulse { 50% { box-shadow: 0 0 38px rgba(0, 240, 255, .2); } }
+    .hero-name {
+      margin: 0;
+      color: var(--fg-primary);
+      font-family: Orbitron, monospace;
+      font-size: clamp(2.65rem, 8vw, 5.3rem);
+      font-weight: 900;
+      letter-spacing: -.045em;
+      line-height: 1.05;
+      text-shadow: 0 0 35px rgba(0, 240, 255, .13);
+    }
+    .hero-tagline {
+      margin: 13px auto 0;
+      color: var(--fg-muted);
+      font-size: clamp(1rem, 2.4vw, 1.2rem);
+      letter-spacing: .03em;
+    }
+    .hero-intro {
+      max-width: 545px;
+      margin: 14px auto 0;
+      color: var(--fg-muted);
+      font-size: 14px;
+    }
+    .hero-intro strong { color: var(--fg-primary); font-weight: 600; }
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 23px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 43px;
+      padding: 0 17px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform .2s var(--ease), border-color .2s, background .2s, box-shadow .2s;
+    }
+    .button:hover, .button:focus-visible {
+      transform: translateY(-3px);
+      border-color: var(--accent-cyan);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, .22);
+    }
+    .button-main { border-color: var(--accent-cyan); color: #031012; background: var(--accent-cyan); }
+    .button-main:hover, .button-main:focus-visible { background: #6df7ff; }
+    .button-quiet { color: var(--fg-primary); background: rgba(255, 255, 255, .035); }
+    .button svg { width: 16px; height: 16px; }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      flex-wrap: wrap;
+      gap: 0;
+      margin: 37px auto 0;
+    }
+    .stat-item { min-width: 112px; padding: 0 19px; }
+    .stat-value {
+      color: var(--accent-cyan);
+      font-family: Orbitron, monospace;
+      font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+      font-weight: 700;
+      line-height: 1;
+      text-shadow: 0 0 22px rgba(0, 240, 255, .36);
+    }
+    .stat-label {
+      margin-top: 7px;
+      color: var(--fg-muted);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .stat-note { display: block; margin-top: 3px; color: #5d5d6d; font-size: 9px; }
+    .stat-divider { width: 1px; min-height: 42px; align-self: center; background: linear-gradient(180deg, transparent, var(--border-glow), transparent); }
+
+    /* V1-style sections: a simple title line and a grid of real games. */
+    .section {
+      padding-top: 5.2rem;
+      opacity: 0;
+      transform: translateY(24px);
+      animation: section-reveal .8s var(--ease) forwards;
+    }
+    .section:nth-of-type(2) { animation-delay: .25s; }
+    .section:nth-of-type(3) { animation-delay: .4s; }
+    .section:nth-of-type(4) { animation-delay: .55s; }
+    @keyframes section-reveal { to { opacity: 1; transform: none; } }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .section-header::before,
+    .section-header::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-subtle));
+    }
+    .section-header::after { background: linear-gradient(90deg, var(--border-subtle), transparent); }
+    .section-title {
+      color: var(--fg-muted);
+      font-family: Orbitron, monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .section-note {
+      max-width: 560px;
+      margin: -7px auto 20px;
+      color: var(--fg-muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .filter {
+      padding: 7px 12px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 100px;
+      color: var(--fg-muted);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: color .2s, border-color .2s, background .2s, transform .2s var(--ease);
+    }
+    .filter:hover, .filter:focus-visible { color: var(--fg-primary); border-color: var(--accent-cyan); transform: translateY(-2px); }
+    .filter[aria-pressed="true"] { border-color: var(--accent-cyan); color: #031012; background: var(--accent-cyan); }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: 12px;
+    }
+    .game-card {
+      position: relative;
+      min-height: 112px;
+      padding: 15px 14px 13px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      background: var(--bg-card);
+      cursor: default;
+      opacity: 0;
+      transform: translateY(16px) scale(.98);
+      animation: card-reveal .55s var(--ease) forwards;
+      transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease), background .3s;
+    }
+    .game-card:nth-child(1) { animation-delay: .45s; }
+    .game-card:nth-child(2) { animation-delay: .5s; }
+    .game-card:nth-child(3) { animation-delay: .55s; }
+    .game-card:nth-child(4) { animation-delay: .6s; }
+    .game-card:nth-child(5) { animation-delay: .65s; }
+    .game-card:nth-child(6) { animation-delay: .7s; }
+    .game-card:nth-child(7) { animation-delay: .75s; }
+    @keyframes card-reveal { to { opacity: 1; transform: none; } }
+    .game-card::after {
+      content: '';
+      position: absolute;
+      right: -25px;
+      bottom: -35px;
+      width: 92px;
+      height: 92px;
+      border: 1px solid var(--game);
+      border-radius: 50%;
+      opacity: .18;
+      transition: transform .35s var(--ease), opacity .35s;
+    }
+    .game-card:hover {
+      z-index: 1;
+      transform: translateY(-5px);
+      border-color: var(--game);
+      background: var(--game-bg);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .22);
+    }
+    .game-card:hover::after { opacity: .5; transform: scale(1.25); }
+    .game-card[hidden] { display: none; }
+    .game-icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      margin-bottom: 10px;
+      border: 1px solid var(--game);
+      border-radius: 10px;
+      color: var(--game);
+      background: var(--game-bg);
+      font-family: Orbitron, monospace;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      box-shadow: 0 7px 18px -10px var(--game);
+      transition: transform .3s var(--ease), background .3s;
+    }
+    .game-card:hover .game-icon { transform: rotate(-5deg) scale(1.08); background: rgba(255, 255, 255, .06); }
+    .game-name { position: relative; z-index: 1; max-width: 155px; color: var(--fg-primary); font-family: Orbitron, monospace; font-size: 12px; font-weight: 700; line-height: 1.25; }
+    .game-category { display: none; }
+
+    .video-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(220px, .55fr);
+      gap: 18px;
+      padding: 14px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+    }
+    .video-frame {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .09);
+      border-radius: var(--radius-md);
+      background: #08080b;
+      box-shadow: 0 18px 35px rgba(0, 0, 0, .25);
+    }
+    .video-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+    .video-fallback { margin: 12px 0 0; color: #686879; font-size: 10px; }
+    .video-fallback a { color: var(--accent-cyan); text-decoration: none; }
+    .video-fallback a:hover { text-decoration: underline; }
+    .video-copy { display: flex; flex-direction: column; justify-content: center; padding: 12px 10px 12px 4px; }
+    .video-kicker { margin: 0 0 12px; color: var(--accent-cyan); font-family: Orbitron, monospace; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+    .video-copy h2 { margin: 0 0 9px; color: var(--fg-primary); font-family: Orbitron, monospace; font-size: clamp(1.2rem, 3vw, 1.7rem); }
+    .video-copy p { margin: 0 0 19px; color: var(--fg-muted); font-size: 13px; line-height: 1.65; }
+    .video-copy .button { align-self: flex-start; }
+    .video-meta { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 17px; color: #686879; font-size: 10px; }
+    .video-meta b { color: var(--accent-cyan); font-weight: 600; }
+
+    .about-card {
+      display: grid;
+      grid-template-columns: .7fr 1.3fr;
+      gap: 24px;
+      padding: 26px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+    }
+    .about-number { color: var(--accent-violet); font-family: Orbitron, monospace; font-size: clamp(4rem, 11vw, 7rem); font-weight: 900; line-height: .8; text-shadow: 0 0 32px rgba(184, 124, 255, .25); }
+    .about-number span { display: block; margin-top: 13px; color: var(--fg-muted); font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 500; line-height: 1.4; text-shadow: none; }
+    .about-copy h2 { margin: 0 0 12px; color: var(--fg-primary); font-family: Orbitron, monospace; font-size: clamp(1.2rem, 3vw, 1.75rem); }
+    .about-copy p { max-width: 570px; margin: 0; color: var(--fg-muted); font-size: 14px; line-height: 1.7; }
+    .about-details { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 21px; padding-top: 16px; border-top: 1px solid var(--border-subtle); color: var(--fg-muted); font-size: 11px; }
+    .about-details strong { color: var(--accent-cyan); font-weight: 600; }
+
+    .footer { padding-top: 3rem; color: var(--fg-muted); font-size: 11px; text-align: center; }
+    .footer a { color: var(--accent-cyan); text-decoration: none; }
+    .footer a:hover { opacity: .7; }
+
+    @media (max-width: 700px) {
+      .page-wrapper { width: min(100% - 28px, 560px); padding-top: 2.5rem; }
+      .hero { padding: 1.5rem 0 3.7rem; }
+      .hero-name { font-size: clamp(2.45rem, 14vw, 4rem); }
+      .hero-stats { gap: 18px 0; }
+      .stat-item { min-width: 33.333%; padding: 0 10px; }
+      .stat-divider { display: none; }
+      .games-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .game-card { min-height: 112px; padding: 14px 12px; }
+      .game-name { font-size: 11px; }
+      .video-card { grid-template-columns: 1fr; gap: 12px; padding: 11px; }
+      .video-copy { padding: 10px 5px 6px; }
+      .video-copy .button { align-self: stretch; }
+      .about-card { grid-template-columns: 1fr; gap: 28px; }
+      .about-number { font-size: 5rem; }
+    }
+    @media (max-width: 420px) {
+      .hero-actions .button { flex: 1 1 100%; }
+      .games-grid { grid-template-columns: 1fr 1fr; }
+      .section { padding-top: 4.3rem; }
+      .section-title { font-size: 11px; }
+      .section-header { gap: 10px; }
+      .game-icon { width: 38px; height: 38px; margin-bottom: 10px; }
+      .game-category { font-size: 9px; }
+      .video-card { grid-template-columns: 1fr; gap: 12px; padding: 11px; }
+      .video-copy { padding: 10px 5px 6px; }
+      .video-copy .button { align-self: stretch; }
+    }
+  </style>
 </head>
 <body>
-    <h1>Hallo Welt!</h1>
-    <p>Meine erste kostenlose Website auf GitHub Pages.</p>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+  <div class="grid-overlay" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <main class="page-wrapper">
+    <header class="hero" id="top">
+      <span class="hero-badge">InfernoSteve_YT</span>
+      <h1 class="hero-name">InfernoSteve</h1>
+      <p class="hero-tagline">Minecraft • GTA • Roblox • more</p>
+      <p class="hero-intro">I'm <strong>15</strong>, from Germany. I make gaming videos when I have something fun to record.</p>
+      <div class="hero-actions">
+        <a class="button button-main" href="https://www.youtube.com/@InfernoSteve_YT" target="_blank" rel="noopener noreferrer">Open YouTube <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23.5 6.2a3.1 3.1 0 0 0-2.2-2.2C19.4 3.5 12 3.5 12 3.5s-7.4 0-9.3.5A3.1 3.1 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3.1 3.1 0 0 0 2.2 2.2c1.9.5 9.3.5 9.3.5s7.4 0 9.3-.5a3.1 3.1 0 0 0 2.2-2.2c.5-1.9.5-5.8.5-5.8s0-3.9-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg></a>
+        <a class="button button-quiet" href="#games">See the games ↓</a>
+      </div>
+
+      <div class="hero-stats" aria-label="InfernoSteve profile and YouTube stats">
+        <div class="stat-item"><div class="stat-value">15</div><div class="stat-label">Age</div></div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item"><div class="stat-value">43</div><div class="stat-label">Games</div></div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item"><div class="stat-value">18</div><div class="stat-label">Subscribers</div></div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item"><div class="stat-value">7</div><div class="stat-label">Videos</div></div>
+        <div class="stat-divider" aria-hidden="true"></div>
+        <div class="stat-item"><div class="stat-value">239</div><div class="stat-label">Views</div><small class="stat-note">channel total</small></div>
+      </div>
+    </header>
+
+    <section id="games" class="section" aria-labelledby="games-title">
+      <div class="section-header"><span class="section-title" id="games-title">Games I Play</span></div>
+      <p class="section-note">My current games — from the library and the ones I keep coming back to.</p>
+      <div class="filters" role="group" aria-label="Filter games">
+        <button class="filter" type="button" data-filter="all" aria-pressed="true">All</button>
+        <button class="filter" type="button" data-filter="main" aria-pressed="false">Main</button>
+        <button class="filter" type="button" data-filter="action" aria-pressed="false">Action</button>
+        <button class="filter" type="button" data-filter="other" aria-pressed="false">Other</button>
+      </div>
+      <div class="games-grid">
+        <article class="game-card" data-group="other" style="--game:#ff704b;--game-bg:rgba(255,112,75,.09)"><div class="game-icon">1v</div><div class="game-name">1v1.LOL</div><div class="game-category">quick matches</div></article>
+        <article class="game-card" data-group="other" style="--game:#d08c61;--game-bg:rgba(208,140,97,.09)"><div class="game-icon">BN</div><div class="game-name">BeamNG.drive</div><div class="game-category">driving / sandbox</div></article>
+        <article class="game-card" data-group="other" style="--game:#b98cff;--game-bg:rgba(185,140,255,.09)"><div class="game-icon">CT</div><div class="game-name">Chained Together</div><div class="game-category">co-op climbing</div></article>
+        <article class="game-card" data-group="other" style="--game:#71c95b;--game-bg:rgba(113,201,91,.09)"><div class="game-icon">CP</div><div class="game-name">CloverPit Demo</div><div class="game-category">demo / roguelike</div></article>
+        <article class="game-card" data-group="action" style="--game:#ffd166;--game-bg:rgba(255,209,102,.09)"><div class="game-icon">CT</div><div class="game-name">Clustertruck</div><div class="game-category">platforming / speed</div></article>
+        <article class="game-card" data-group="other" style="--game:#e3c65e;--game-bg:rgba(227,198,94,.09)"><div class="game-icon">CW</div><div class="game-name">Content Warning</div><div class="game-category">co-op / horror</div></article>
+        <article class="game-card" data-group="action" style="--game:#e5c257;--game-bg:rgba(229,194,87,.09)"><div class="game-icon">CY</div><div class="game-name">Cyberpunk 2077</div><div class="game-category">open world / RPG</div></article>
+        <article class="game-card" data-group="action" style="--game:#e15858;--game-bg:rgba(225,88,88,.09)"><div class="game-icon">DS</div><div class="game-name">Deadshot Demo</div><div class="game-category">demo / shooter</div></article>
+        <article class="game-card" data-group="other" style="--game:#75bd63;--game-bg:rgba(117,189,99,.09)"><div class="game-icon">DD</div><div class="game-name">Drug Dealer Simulator</div><div class="game-category">simulator</div></article>
+        <article class="game-card" data-group="other" style="--game:#7bd5e8;--game-bg:rgba(123,213,232,.09)"><div class="game-icon">FN</div><div class="game-name">Find The Needle Demo</div><div class="game-category">demo / puzzle</div></article>
+        <article class="game-card" data-group="other" style="--game:#6eb7e9;--game-bg:rgba(110,183,233,.09)"><div class="game-icon">FH</div><div class="game-name">Forza Horizon 6</div><div class="game-category">racing / open world</div></article>
+        <article class="game-card" data-group="other" style="--game:#ef80b0;--game-bg:rgba(239,128,176,.09)"><div class="game-icon">GF</div><div class="game-name">Gamble With Your Friends</div><div class="game-category">party game</div></article>
+        <article class="game-card" data-group="other" style="--game:#6a9ce8;--game-bg:rgba(106,156,232,.09)"><div class="game-icon">GM</div><div class="game-name">Garry's Mod</div><div class="game-category">sandbox / multiplayer</div></article>
+        <article class="game-card" data-group="action" style="--game:#42d477;--game-bg:rgba(66,212,119,.09)"><div class="game-icon">GTA</div><div class="game-name">Grand Theft Auto V Enhanced</div><div class="game-category">open world / action</div></article>
+        <article class="game-card" data-group="action" style="--game:#52b866;--game-bg:rgba(82,184,102,.09)"><div class="game-icon">GTA</div><div class="game-name">Grand Theft Auto V Legacy</div><div class="game-category">open world / action</div></article>
+        <article class="game-card" data-group="other" style="--game:#ff8c71;--game-bg:rgba(255,140,113,.09)"><div class="game-icon">HW</div><div class="game-name">Happy Wheels</div><div class="game-category">physics / classic</div></article>
+        <article class="game-card" data-group="action" style="--game:#d86f62;--game-bg:rgba(216,111,98,.09)"><div class="game-icon">HN</div><div class="game-name">Hello Neighbor</div><div class="game-category">stealth / horror</div></article>
+        <article class="game-card" data-group="action" style="--game:#d86f62;--game-bg:rgba(216,111,98,.09)"><div class="game-icon">HN3</div><div class="game-name">Hello Neighbor 3 Playtest</div><div class="game-category">playtest / horror</div></article>
+        <article class="game-card" data-group="action" style="--game:#f05c4e;--game-bg:rgba(240,92,78,.09)"><div class="game-icon">KF2</div><div class="game-name">KILL IT WITH FIRE 2</div><div class="game-category">action / creatures</div></article>
+        <article class="game-card" data-group="action" style="--game:#e04d4d;--game-bg:rgba(224,77,77,.09)"><div class="game-icon">KF</div><div class="game-name">Killing Floor</div><div class="game-category">co-op shooter</div></article>
+        <article class="game-card" data-group="other" style="--game:#9bd26e;--game-bg:rgba(155,210,110,.09)"><div class="game-icon">LA</div><div class="game-name">Leaf it Alone</div><div class="game-category">indie / casual</div></article>
+        <article class="game-card" data-group="action" style="--game:#ef5d62;--game-bg:rgba(239,93,98,.09)"><div class="game-icon">SM</div><div class="game-name">Marvel's Spider-Man: Miles Morales</div><div class="game-category">action / adventure</div></article>
+        <article class="game-card" data-group="other" style="--game:#f4bd55;--game-bg:rgba(244,189,85,.09)"><div class="game-icon">OC</div><div class="game-name">One-armed cook</div><div class="game-category">co-op / cooking</div></article>
+        <article class="game-card" data-group="other" style="--game:#f08b68;--game-bg:rgba(240,139,104,.09)"><div class="game-icon">OR</div><div class="game-name">One-armed robber</div><div class="game-category">co-op / heist</div></article>
+        <article class="game-card" data-group="other" style="--game:#a9b5c6;--game-bg:rgba(169,181,198,.09)"><div class="game-icon">PH</div><div class="game-name">Phasmophobia</div><div class="game-category">co-op horror</div></article>
+        <article class="game-card" data-group="action" style="--game:#e879a4;--game-bg:rgba(232,121,164,.09)"><div class="game-icon">PP</div><div class="game-name">Poppy Playtime</div><div class="game-category">puzzle / horror</div></article>
+        <article class="game-card" data-group="action" style="--game:#e99d57;--game-bg:rgba(233,157,87,.09)"><div class="game-icon">PO</div><div class="game-name">Portal</div><div class="game-category">puzzle / classic</div></article>
+        <article class="game-card" data-group="other" style="--game:#6eb7e9;--game-bg:rgba(110,183,233,.09)"><div class="game-icon">RV</div><div class="game-name">RV There Yet?</div><div class="game-category">co-op road trip</div></article>
+        <article class="game-card" data-group="other" style="--game:#74c56b;--game-bg:rgba(116,197,107,.09)"><div class="game-icon">S1</div><div class="game-name">Schedule I</div><div class="game-category">simulator / management</div></article>
+        <article class="game-card" data-group="other" style="--game:#c58cff;--game-bg:rgba(197,140,255,.09)"><div class="game-icon">SS</div><div class="game-name">Scritchy Scratchy Demo</div><div class="game-category">demo / horror</div></article>
+        <article class="game-card" data-group="other" style="--game:#f28d57;--game-bg:rgba(242,141,87,.09)"><div class="game-icon">SM</div><div class="game-name">Shift At Midnight</div><div class="game-category">indie / horror</div></article>
+        <article class="game-card" data-group="action" style="--game:#55b9e8;--game-bg:rgba(85,185,232,.09)"><div class="game-icon">SG</div><div class="game-name">Splitgate</div><div class="game-category">arena shooter</div></article>
+        <article class="game-card" data-group="action" style="--game:#e8e6e0;--game-bg:rgba(232,230,224,.09)"><div class="game-icon">ST</div><div class="game-name">Stray</div><div class="game-category">adventure</div></article>
+        <article class="game-card" data-group="other" style="--game:#79c96d;--game-bg:rgba(121,201,109,.09)"><div class="game-icon">SS</div><div class="game-name">Supermarket Simulator</div><div class="game-category">simulator</div></article>
+        <article class="game-card" data-group="other" style="--game:#57c8b6;--game-bg:rgba(87,200,182,.09)"><div class="game-icon">ST</div><div class="game-name">Supermarket Together</div><div class="game-category">co-op simulator</div></article>
+        <article class="game-card" data-group="action" style="--game:#e0ae4f;--game-bg:rgba(224,174,79,.09)"><div class="game-icon">TD</div><div class="game-name">Teardown</div><div class="game-category">destruction / sandbox</div></article>
+        <article class="game-card" data-group="other" style="--game:#e99a58;--game-bg:rgba(233,154,88,.09)"><div class="game-icon">LD</div><div class="game-name">The Long Drive</div><div class="game-category">driving / survival</div></article>
+        <article class="game-card" data-group="other" style="--game:#d6a06c;--game-bg:rgba(214,160,108,.09)"><div class="game-icon">WH</div><div class="game-name">Wrap House Simulator</div><div class="game-category">simulator</div></article>
+        <article class="game-card" data-group="main" style="--game:#9974ff;--game-bg:rgba(153,116,255,.09)"><div class="game-icon">FN</div><div class="game-name">Fortnite</div><div class="game-category">battle royale</div></article>
+        <article class="game-card" data-group="main" style="--game:#7bd5e8;--game-bg:rgba(123,213,232,.09)"><div class="game-icon">RL</div><div class="game-name">Rocket League</div><div class="game-category">cars / football</div></article>
+        <article class="game-card" data-group="main" style="--game:#65c84a;--game-bg:rgba(101,200,74,.09)"><div class="game-icon">MC</div><div class="game-name">Minecraft</div><div class="game-category">survival / builds</div></article>
+        <article class="game-card" data-group="main" style="--game:#35aaf5;--game-bg:rgba(53,170,245,.09)"><div class="game-icon">RB</div><div class="game-name">Roblox</div><div class="game-category">variety / challenges</div></article>
+        <article class="game-card" data-group="main" style="--game:#ff795e;--game-bg:rgba(255,121,94,.09)"><div class="game-icon">FM</div><div class="game-name">FiveM</div><div class="game-category">RP / stories</div></article>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="youtube-title">
+      <div class="section-header"><span class="section-title" id="youtube-title">Recent videos</span></div>
+      <div class="video-card">
+        <div class="video-frame">
+          <iframe title="Minecraft BedWars Krass" src="https://www.youtube.com/embed/tmqwcE5-2w4?rel=0&amp;playsinline=1" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+        <div class="video-copy">
+          <p class="video-kicker">@InfernoSteve_YT</p>
+          <h2>Minecraft BedWars Krass</h2>
+          <p>One of my videos. Watch it here or open it directly on YouTube.</p>
+          <a class="button button-main" href="https://www.youtube.com/watch?v=tmqwcE5-2w4" target="_blank" rel="noopener noreferrer">Watch on YouTube</a>
+          <p class="video-fallback">If the player does not load, <a href="https://www.youtube.com/watch?v=tmqwcE5-2w4" target="_blank" rel="noopener noreferrer">open the video here</a>.</p>
+          <div class="video-meta"><span><b>7</b> videos</span><span><b>239</b> views</span><span><b>2023</b> joined</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="about-title">
+      <div class="section-header"><span class="section-title" id="about-title">About</span></div>
+      <div class="about-card">
+        <div class="about-number">15<span>years old<br>gaming creator</span></div>
+        <div class="about-copy">
+          <h2>I'm InfernoSteve.</h2>
+          <p>I'm 15 and from Germany. I upload gaming videos, try out different games, and sometimes make mods or experiments. Nothing too serious.</p>
+          <div class="about-details"><span>Based in <strong>Germany</strong></span><span>On YouTube since <strong>August 31, 2023</strong></span></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer"><p>© InfernoSteve · <a href="https://www.youtube.com/@InfernoSteve_YT" target="_blank" rel="noopener noreferrer">YouTube</a></p></footer>
+  </main>
+
+  <script>
+    (() => {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const filters = document.querySelectorAll('.filter');
+      const cards = document.querySelectorAll('.game-card');
+      filters.forEach(filter => filter.addEventListener('click', () => {
+        const value = filter.dataset.filter;
+        filters.forEach(item => item.setAttribute('aria-pressed', item === filter ? 'true' : 'false'));
+        cards.forEach(card => {
+          const visible = value === 'all' || card.dataset.group === value;
+          card.hidden = !visible;
+          if (visible && !reduced && card.animate) {
+            card.animate([{ opacity: .35, transform: 'translateY(8px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
+          }
+        });
+      }));
+
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas && canvas.getContext ? canvas.getContext('2d') : null;
+      if (!reduced && ctx) {
+        let particles = [];
+        let animationId = 0;
+        let width = 0;
+        let height = 0;
+        let mouseX = -1000;
+        let mouseY = -1000;
+        const colors = ['rgba(0,240,255,.55)', 'rgba(184,124,255,.45)', 'rgba(255,107,53,.4)', 'rgba(34,197,94,.45)'];
+
+        const resize = () => {
+          width = canvas.width = window.innerWidth;
+          height = canvas.height = window.innerHeight;
+          particles = Array.from({ length: Math.min(60, Math.max(30, Math.floor(width / 22))) }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            vx: (Math.random() - .5) * .35,
+            vy: (Math.random() - .5) * .35,
+            radius: Math.random() * 1.6 + .5,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            alpha: Math.random() * .34 + .14
+          }));
+        };
+
+        const draw = () => {
+          ctx.clearRect(0, 0, width, height);
+          particles.forEach(point => {
+            const dx = mouseX - point.x;
+            const dy = mouseY - point.y;
+            const distance = Math.hypot(dx, dy);
+            if (distance < 170 && distance > 0) {
+              const force = (170 - distance) / 170 * .45;
+              point.vx -= dx / distance * force;
+              point.vy -= dy / distance * force;
+            }
+            point.vx *= .99;
+            point.vy *= .99;
+            point.x += point.vx;
+            point.y += point.vy;
+            if (point.x < -35) point.x = width + 35;
+            if (point.x > width + 35) point.x = -35;
+            if (point.y < -35) point.y = height + 35;
+            if (point.y > height + 35) point.y = -35;
+
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+            ctx.fillStyle = point.color.replace(/\.\d+\)/, `${point.alpha.toFixed(2)})`);
+            ctx.fill();
+          });
+
+          for (let i = 0; i < particles.length; i += 1) {
+            for (let j = i + 1; j < particles.length; j += 1) {
+              const dx = particles[i].x - particles[j].x;
+              const dy = particles[i].y - particles[j].y;
+              const distance = Math.hypot(dx, dy);
+              if (distance < 135) {
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = `rgba(0,240,255,${(1 - distance / 135) * .1})`;
+                ctx.lineWidth = .5;
+                ctx.stroke();
+              }
+            }
+          }
+          animationId = requestAnimationFrame(draw);
+        };
+
+        document.addEventListener('mousemove', event => { mouseX = event.clientX; mouseY = event.clientY; });
+        document.addEventListener('mouseleave', () => { mouseX = -1000; mouseY = -1000; });
+        document.addEventListener('touchmove', event => {
+          if (event.touches[0]) { mouseX = event.touches[0].clientX; mouseY = event.touches[0].clientY; }
+        }, { passive: true });
+        window.addEventListener('resize', resize, { passive: true });
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) { cancelAnimationFrame(animationId); animationId = 0; }
+          else if (!animationId) animationId = requestAnimationFrame(draw);
+        });
+        resize();
+        draw();
+      }
+    })();
+  </script>
 </body>
 </html>
